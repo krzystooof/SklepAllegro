@@ -3,7 +3,7 @@ package pl.krzystooof.sklepallegro.data;
 import java.util.List;
 
 public class Offers {
-    List<Offer> offers;
+    private List<Offer> offers;
 
     public Offers(List<Offer> offers) {
         this.offers = offers;

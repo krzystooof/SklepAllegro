@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Offer {
-    String id;
-    String name;
-    String thumbnailUrl;
-    Price price;
-    String description​;
+    private String id;
+    private String name;
+    private String thumbnailUrl;
+    private Price price;
+    private String description​;
 
     public Offer(String id, String name, String thumbnailUrl, Price price, String description​) {
         this.id = id;
@@ -72,33 +72,3 @@ public class Offer {
     }
 }
 
-class Price {
-    double amount;
-    String currency;
-
-    public Price(double amount, String currency) {
-        this.amount = amount;
-        this.currency = currency;
-    }
-
-    public Price() {
-        amount = 0;
-        currency = "";
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-}
