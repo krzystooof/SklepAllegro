@@ -18,7 +18,7 @@ public class Price {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    protected void setAmount(double amount) {
         this.amount = amount;
     }
 
@@ -26,7 +26,7 @@ public class Price {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    protected void setCurrency(String currency) {
         this.currency = currency;
     }
 }

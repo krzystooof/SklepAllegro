@@ -1,20 +1,20 @@
 package pl.krzystooof.sklepallegro.data;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class Offers {
-    private List<Offer> offers;
+    private ArrayList<Offer> offers;
 
-    public Offers(List<Offer> offers) {
-        this.offers = offers;
+    public Offers() {
+        this.offers = new ArrayList<>();
     }
 
 
-    public List<Offer> getOffers() {
+    public ArrayList<Offer> getOffers() {
         return offers;
     }
 
-    public void setOffers(List<Offer> offers) {
+    public void setOffers(ArrayList<Offer> offers) {
         this.offers = offers;
     }
 }
