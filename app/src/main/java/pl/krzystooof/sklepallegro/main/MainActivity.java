@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     class mRecycler{
         private RecyclerView recyclerView;
-        private MainAcitivityRecyclerAdapter adapter;
+        private MainActivityRecyclerAdapter adapter;
         private LinearLayoutManager linearLayoutManager;
         private DividerItemDecoration itemDecorator;
 
@@ -57,12 +57,12 @@ public class MainActivity extends AppCompatActivity {
             itemDecorator = new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL);
             itemDecorator.setDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.recycler_divider));
             recyclerView.addItemDecoration(itemDecorator);
-            adapter = new MainAcitivityRecyclerAdapter(offers);
+            adapter = new MainActivityRecyclerAdapter(offers);
             recyclerView.setAdapter(adapter);
-            Log.i(LogTag, "mRecycler: created");
+            Log.i(LogTag, "mRecycler: created, items = " + adapter.getItemCount());
         }
 
-        protected MainAcitivityRecyclerAdapter getAdapter() {
+        protected MainActivityRecyclerAdapter getAdapter() {
             return adapter;
         }
 
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.i(LogTag, "GetData: copied offers to recycler's array");
             } catch (IOException exception) {
-                recycler.showSnackbar("Connection error",true);
+                recycler.showSnackbar("Brak połączenia",true);
                 Log.e(LogTag,exception.toString());
 
             }
@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             recycler.getAdapter().notifyDataSetChanged();
+            Log.i(LogTag, "mRecycler: notified about data change, items = " + recycler.getAdapter().getItemCount());
         }
 
         private Offers getOffers(String url) throws IOException {
