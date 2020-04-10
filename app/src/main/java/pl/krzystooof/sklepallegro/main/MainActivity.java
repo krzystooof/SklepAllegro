@@ -3,6 +3,7 @@ package pl.krzystooof.sklepallegro.main;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -23,6 +24,7 @@ import pl.krzystooof.sklepallegro.R;
 import pl.krzystooof.sklepallegro.data.Offer;
 import pl.krzystooof.sklepallegro.data.Offers;
 
+//TODO shared preferences, second screen
 public class MainActivity extends AppCompatActivity {
 
    mRecycler recycler;
