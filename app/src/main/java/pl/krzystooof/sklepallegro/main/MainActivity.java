@@ -1,13 +1,19 @@
 package pl.krzystooof.sklepallegro.main;
 
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toolbar;
+import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,7 +33,7 @@ import pl.krzystooof.sklepallegro.data.Offers;
 //TODO shared preferences, second screen
 public class MainActivity extends AppCompatActivity {
 
-   mRecycler recycler;
+   MainActivityRecycler recycler;
    String LogTag = "MainActivity";
 
 
@@ -42,26 +48,30 @@ public class MainActivity extends AppCompatActivity {
         //get Offers object
         new GetData(offers).execute(jsonUrl);
 
-        recycler = new mRecycler(offers);
+        recycler = new MainActivityRecycler(offers, (RecyclerView) findViewById(R.id.recyclerView),getApplicationContext());
     }
 
-    class mRecycler{
+    class MainActivityRecycler {
+        private String LogTag = "MainActivityRecycler";
         private RecyclerView recyclerView;
         private MainActivityRecyclerAdapter adapter;
         private LinearLayoutManager linearLayoutManager;
         private DividerItemDecoration itemDecorator;
+        private ItemTouchHelper itemTouchHelper;
 
-        mRecycler(ArrayList<Offer> offers){
-            recyclerView = findViewById(R.id.recyclerView);
+        MainActivityRecycler(ArrayList<Offer> offers, RecyclerView recycler, Context context){
+            recyclerView = recycler;
             recyclerView.setHasFixedSize(true);
-            linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+            linearLayoutManager = new LinearLayoutManager(context);
             recyclerView.setLayoutManager(linearLayoutManager);
-            itemDecorator = new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL);
-            itemDecorator.setDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.recycler_divider));
+            itemDecorator = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
+            itemDecorator.setDrawable(ContextCompat.getDrawable(context, R.drawable.recycler_divider));
             recyclerView.addItemDecoration(itemDecorator);
             adapter = new MainActivityRecyclerAdapter(offers);
             recyclerView.setAdapter(adapter);
-            Log.i(LogTag, "mRecycler: created, items = " + adapter.getItemCount());
+            itemTouchHelper = new ItemTouchHelper(new TouchHelper(adapter));
+            itemTouchHelper.attachToRecyclerView(recyclerView);
+            Log.i(LogTag, "created, items = " + adapter.getItemCount());
         }
 
         protected MainActivityRecyclerAdapter getAdapter() {
@@ -69,11 +79,67 @@ public class MainActivity extends AppCompatActivity {
         }
 
         protected void showSnackbar(String text, boolean durationLong) {
-            if (durationLong) Snackbar.make(recyclerView, text,Snackbar.LENGTH_LONG).show();
-            else Snackbar.make(recyclerView, text,Snackbar.LENGTH_SHORT).show();
-            Log.i(LogTag, "mRecycler: Snackbar "+ text + " shown");
+            Snackbar snackbar;
+            if (durationLong )snackbar =  Snackbar.make(recyclerView, text,Snackbar.LENGTH_LONG);
+            else snackbar = Snackbar.make(recyclerView, text,Snackbar.LENGTH_SHORT);
+            snackbar.show();
+            Log.i(LogTag, "Snackbar "+ text + " shown");
+        }
+
+        class TouchHelper extends ItemTouchHelper.SimpleCallback {
+            private MainActivityRecyclerAdapter adapter;
+            ColorDrawable backgroundColor;
+
+            public TouchHelper(MainActivityRecyclerAdapter adapter) {
+                super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+                this.adapter = adapter;
+                backgroundColor = new ColorDrawable(Color.WHITE);
+            }
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                //set element back to its original position
+                adapter.notifyItemChanged(position);
+                //left
+                if (direction==4)showSnackbar("To może być akcja",false);
+                else showSnackbar("To może być inna akcja",false);
+
+
+            }
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX,
+                        dY, actionState, isCurrentlyActive);
+                View itemView = viewHolder.itemView;
+                int backgroundCornerOffset = 20;
+                int maxOffset = 150;
+                if (dX > 0) { // Swiping to the right
+                    backgroundColor.setBounds(itemView.getLeft(), itemView.getTop(),
+                            itemView.getLeft() + ((int) dX) + backgroundCornerOffset,
+                            itemView.getBottom());
+                    //set max swipe position
+                    if (dX>maxOffset){
+                        onChildDraw(c, recyclerView, viewHolder,maxOffset,
+                                dY, actionState, false);
+                    }
+
+                } else if (dX < 0) { // Swiping to the left
+                    backgroundColor.setBounds(itemView.getRight() + ((int) dX) - backgroundCornerOffset,
+                            itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                } else { // view is unSwiped
+                    backgroundColor.setBounds(0, 0, 0, 0);
+                }
+                backgroundColor.draw(c);
+            }
         }
     }
+
+
 
     class GetData extends AsyncTask<String, String, String> {
         ArrayList<Offer> offers;
@@ -105,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             recycler.getAdapter().notifyDataSetChanged();
-            Log.i(LogTag, "mRecycler: notified about data change, items = " + recycler.getAdapter().getItemCount());
+            Log.i(LogTag, "GetData: notified about data change, recycler items = " + recycler.getAdapter().getItemCount());
         }
 
         private Offers getOffers(String url) throws IOException {
