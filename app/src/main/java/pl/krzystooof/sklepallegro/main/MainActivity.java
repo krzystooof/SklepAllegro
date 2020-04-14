@@ -28,9 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Scanner;
-import java.util.Set;
 
 import pl.krzystooof.sklepallegro.R;
 import pl.krzystooof.sklepallegro.data.Offer;
@@ -44,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     MainActivityRecycler recycler;
     String LogTag = "MainActivity";
     ArrayList<Offer> offers;
+    String jsonUrl;
+    mSharedPref sharedPref;
 
 
     @Override
@@ -52,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
         Log.i(LogTag, "onCreate: called");
         setContentView(R.layout.activity_main);
         offers = new ArrayList<>();
+        jsonUrl = "https://private-987cdf-allegromobileinterntest.apiary-mock.com/allegro/offers";
+
+        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
+        sharedPref = new mSharedPref(sharedPreferences);
+        //set paused to false, because activity was created - it should download data, not retrieve from SharedPref
+        sharedPref.setPaused(false);
 
         recycler = new MainActivityRecycler(offers);
     }
@@ -60,9 +66,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        //save offers and visibleItem to shared pref
-        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
-        mSharedPref sharedPref = new mSharedPref(sharedPreferences);
+        //save offers and visibleItem to SharedPref
         sharedPref.save(offers);
         sharedPref.saveInt(getString(R.string.shared_preferences_visible),recycler.getLinearLayoutManager().findFirstVisibleItemPosition());
     }
@@ -72,8 +76,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         //get offers and pass to recycler
-        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
-        new GetData(offers, sharedPreferences).execute();
+        new GetData(offers, sharedPref).execute(jsonUrl);
     }
 
 
@@ -199,14 +202,13 @@ public class MainActivity extends AppCompatActivity {
 
     class GetData extends AsyncTask<String, String, String> {
         ArrayList<Offer> offers;
-        String jsonUrl;
-        SharedPreferences sharedPreferences;
+        mSharedPref sharedPref;
         int visibleItem;
+        boolean paused;
 
-        protected GetData(ArrayList<Offer> offers, SharedPreferences sharedPreferences) {
-            this.sharedPreferences = sharedPreferences;
+        protected GetData(ArrayList<Offer> offers, mSharedPref sharedPref) {
+            this.sharedPref = sharedPref;
             this.offers = offers;
-            jsonUrl = "https://private-987cdf-allegromobileinterntest.apiary-mock.com/allegro/offers";
             Log.i(LogTag, "GetData: created");
         }
 
@@ -217,16 +219,18 @@ public class MainActivity extends AppCompatActivity {
                 Offers offersObject = new Offers();
 
                 //get offers and visibleItem from SharedPreferences
-                mSharedPref sharedPref = new mSharedPref(sharedPreferences);
-                offersObject.setOffers(sharedPref.read());
-                Log.i(LogTag, "GetData: offers retrieved from SharedPref, size = " + offersObject.getOffers().size());
+                paused = sharedPref.getPaused();
+                if(paused) {
+                    offersObject.setOffers(sharedPref.read());
+                    Log.i(LogTag, "GetData: offers retrieved from SharedPref, size = " + offersObject.getOffers().size());
 
-                visibleItem = sharedPref.readInt(getString(R.string.shared_preferences_visible));
-                Log.i(LogTag, "GetData: last visible item = " +visibleItem);
+                    visibleItem = sharedPref.readInt(getString(R.string.shared_preferences_visible));
+                    Log.i(LogTag, "GetData: last visible item = " +visibleItem);
+                }
 
                 //if no offers download from url
                 if (offersObject.getOffers().size() == 0) {
-                    offersObject = getOffers(jsonUrl);
+                    offersObject = getOffers(strings[0]);
                     Log.i(LogTag, "GetData: offers downloaded, size = " + offersObject.getOffers().size());
                 }
                 //filter
@@ -238,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                 for (Offer offer : offersObject.getOffers()) {
                     offers.add(offer);
                 }
-                Log.e(LogTag, "GetData: copied offers to recycler's array");
+                Log.i(LogTag, "GetData: copied offers to recycler's array");
             } catch (IOException exception) {
                 recycler.showSnackbar("Brak połączenia", true);
                 Log.i(LogTag, "GetData: No connection");
@@ -252,8 +256,10 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(s);
             recycler.getAdapter().notifyDataSetChanged();
             Log.i(LogTag, "GetData: notified about data change, recycler items = " + recycler.getAdapter().getItemCount());
-            recycler.getLinearLayoutManager().scrollToPosition(visibleItem);
-            Log.i(LogTag, "GetData: recycler scrolled to position no " + visibleItem);
+            if(paused) {
+                recycler.getLinearLayoutManager().scrollToPosition(visibleItem);
+                Log.i(LogTag, "GetData: recycler scrolled to position no " + visibleItem);
+            }
         }
 
         private Offers getOffers(String url) throws IOException {

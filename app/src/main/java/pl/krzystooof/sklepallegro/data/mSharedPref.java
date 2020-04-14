@@ -39,7 +39,7 @@ public class mSharedPref {
     }
 
     public void save(ArrayList<Offer> offers) {
-        sharedPref.edit().putBoolean("paused", true).commit();
+        setPaused(true);
         for (Offer offer : offers) {
             offersSet.add(offerToJson(offer));
         }
@@ -56,7 +56,7 @@ public class mSharedPref {
         ArrayList<Offer> offers = new ArrayList<>();
 
         //if paused - something is saved, so read
-        if (sharedPref.getBoolean("paused", false)) {
+        if (getPaused()) {
             Set<String> emptySet = new HashSet<>();
             offersSet = sharedPref.getStringSet(setName, emptySet);
             for (String jsonString : offersSet) {
@@ -73,5 +73,11 @@ public class mSharedPref {
     public int readInt(String name){
         Log.i(LogTag, "readInt called");
         return sharedPref.getInt(name,0);
+    }
+    public boolean getPaused(){
+        return sharedPref.getBoolean("paused", false);
+    }
+    public void setPaused(boolean read){
+        sharedPref.edit().putBoolean("paused", read).commit();
     }
 }
