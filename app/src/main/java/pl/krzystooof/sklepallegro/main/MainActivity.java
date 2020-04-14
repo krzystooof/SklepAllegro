@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public Offer offerFromJson(String jsonString){
-            return gson.fromJson(jsonString, Offer.class)
+            return gson.fromJson(jsonString, Offer.class);
         }
 
         public ArrayList<Offer> read() {
