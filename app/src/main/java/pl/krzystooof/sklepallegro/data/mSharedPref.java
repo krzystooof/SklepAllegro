@@ -66,4 +66,12 @@ public class mSharedPref {
         Log.i(LogTag, "offers readed from SharedPref");
         return offers;
     }
+    public void saveInt(String name, int number){
+        Log.i(LogTag, "saveInt called");
+        sharedPref.edit().putInt(name, number).commit();
+    }
+    public int readInt(String name){
+        Log.i(LogTag, "readInt called");
+        return sharedPref.getInt(name,0);
+    }
 }
