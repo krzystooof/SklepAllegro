@@ -57,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        //save offers to shared pref
+        //save offers and visibleItem to shared pref
         SharedPreferences sharedPreferences = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
-        new mSharedPref(sharedPreferences).save(offers);
+        mSharedPref sharedPref = new mSharedPref(sharedPreferences);
+        sharedPref.save(offers);
+        sharedPref.saveInt(getString(R.string.shared_preferences_visible),recycler.getLinearLayoutManager().findFirstVisibleItemPosition());
     }
 
     @Override
@@ -96,6 +98,10 @@ public class MainActivity extends AppCompatActivity {
 
         protected MainActivityRecyclerAdapter getAdapter() {
             return adapter;
+        }
+
+        public LinearLayoutManager getLinearLayoutManager() {
+            return linearLayoutManager;
         }
 
         protected void showSnackbar(String text, boolean durationLong) {
@@ -192,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Offer> offers;
         String jsonUrl;
         SharedPreferences sharedPreferences;
+        int visibleItem;
 
         protected GetData(ArrayList<Offer> offers, SharedPreferences sharedPreferences) {
             this.sharedPreferences = sharedPreferences;
@@ -205,9 +212,13 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Offers offersObject = new Offers();
 
-                //get offers from SharedPreferences
-                offersObject.setOffers(new mSharedPref(sharedPreferences).read());
+                //get offers and visibleItem from SharedPreferences
+                mSharedPref sharedPref = new mSharedPref(sharedPreferences);
+                offersObject.setOffers(sharedPref.read());
                 Log.i(LogTag, "GetData: offers retrieved from SharedPref, size = " + offersObject.getOffers().size());
+
+                visibleItem = sharedPref.readInt(getString(R.string.shared_preferences_visible));
+                Log.i(LogTag, "GetData: last visible item = " +visibleItem);
 
                 //if no offers download from url
                 if (offersObject.getOffers().size() == 0) {
@@ -237,6 +248,8 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(s);
             recycler.getAdapter().notifyDataSetChanged();
             Log.i(LogTag, "GetData: notified about data change, recycler items = " + recycler.getAdapter().getItemCount());
+            recycler.getLinearLayoutManager().scrollToPosition(visibleItem);
+            Log.i(LogTag, "GetData: recycler scrolled to position no " + visibleItem);
         }
 
         private Offers getOffers(String url) throws IOException {
