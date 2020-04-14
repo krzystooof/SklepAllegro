@@ -33,8 +33,9 @@ import java.util.Set;
 import pl.krzystooof.sklepallegro.R;
 import pl.krzystooof.sklepallegro.data.Offer;
 import pl.krzystooof.sklepallegro.data.Offers;
+import pl.krzystooof.sklepallegro.data.mSharedPref;
 
-//TODO second screen
+//TODO second screen, tests, doc
 public class MainActivity extends AppCompatActivity {
 
     MainActivityRecycler recycler;
@@ -57,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         //save offers to shared pref
-        new mSharedPref().save(offers);
+        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
+        new mSharedPref(sharedPreferences).save(offers);
     }
 
     @Override
@@ -65,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         //get offers and pass to recycler
-        new GetData(offers).execute();
+        SharedPreferences sharedPreferences = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
+        new GetData(offers, sharedPreferences).execute();
     }
 
 
@@ -188,8 +191,10 @@ public class MainActivity extends AppCompatActivity {
     class GetData extends AsyncTask<String, String, String> {
         ArrayList<Offer> offers;
         String jsonUrl;
+        SharedPreferences sharedPreferences;
 
-        protected GetData(ArrayList<Offer> offers) {
+        protected GetData(ArrayList<Offer> offers, SharedPreferences sharedPreferences) {
+            this.sharedPreferences = sharedPreferences;
             this.offers = offers;
             jsonUrl = "https://private-987cdf-allegromobileinterntest.apiary-mock.com/allegro/offers";
             Log.i(LogTag, "GetData: created");
@@ -201,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                 Offers offersObject = new Offers();
 
                 //get offers from SharedPreferences
-                offersObject.setOffers(new mSharedPref().read());
+                offersObject.setOffers(new mSharedPref(sharedPreferences).read());
                 Log.i(LogTag, "GetData: offers retrieved from SharedPref, size = " + offersObject.getOffers().size());
 
                 //if no offers download from url
@@ -262,49 +267,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class mSharedPref {
-        SharedPreferences sharedPref;
-        SharedPreferences.Editor editor;
-        Set<String> offersSet;
-        Gson gson;
-        String setName;
-
-        mSharedPref() {
-            sharedPref = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
-            editor = sharedPref.edit();
-            offersSet = new HashSet<>();
-            gson = new Gson();
-            setName = "offersSet";
-        }
-
-        public String offerToJson(Offer offer){
-            return gson.toJson(offer);
-        }
-
-        public void save(ArrayList<Offer> offers) {
-            sharedPref.edit().putBoolean("paused", true).commit();
-            for (Offer offer : offers) {
-                offersSet.add(offerToJson(offer));
-            }
-            editor.putStringSet(setName, offersSet).apply();
-        }
-
-        public Offer offerFromJson(String jsonString){
-            return gson.fromJson(jsonString, Offer.class);
-        }
-
-        public ArrayList<Offer> read() {
-            ArrayList<Offer> offers = new ArrayList<>();
-
-            //if paused - something is saved, so read
-            if (sharedPref.getBoolean("paused", false)) {
-                Set<String> emptySet = new HashSet<>();
-                offersSet = sharedPref.getStringSet(setName, emptySet);
-                for (String jsonString : offersSet) {
-                    offers.add(offerFromJson(jsonString));
-                }
-            }
-            return offers;
-        }
-    }
 }
