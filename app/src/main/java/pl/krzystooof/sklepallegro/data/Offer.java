@@ -1,13 +1,5 @@
 package pl.krzystooof.sklepallegro.data;
 
-import com.google.gson.Gson;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
-import java.util.Scanner;
-
 public class Offer {
     private String id;
     private String name;
