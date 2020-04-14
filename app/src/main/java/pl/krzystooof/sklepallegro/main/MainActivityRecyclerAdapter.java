@@ -2,7 +2,6 @@ package pl.krzystooof.sklepallegro.main;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,11 +39,11 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
         //MiddleMessage or EndMessage
         if (viewType == 1 || viewType == 2) {
-            View listItem = layoutInflater.inflate(R.layout.activity_main_recycler_item_additional, parent, false);
+            View listItem = layoutInflater.inflate(R.layout.recycler_item_additional, parent, false);
             return new mViewHolder1(listItem);
         }
         //OfferList
-        View listItem = layoutInflater.inflate(R.layout.activity_main_recycler_item, parent, false);
+        View listItem = layoutInflater.inflate(R.layout.recycler_item, parent, false);
         return new mViewHolder0(listItem);
 
     }
@@ -85,11 +84,9 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
             Offer offer = offers.get(position);
 
             //prevent part of title showing off screen
-            if (offer.getName().length() > 40)
-                mHolder.titleText.setText(offer.getName().substring(0, 37) + "...");
-            else mHolder.titleText.setText(offer.getName());
+            mHolder.titleText.setText(offer.getName());
 
-            mHolder.priceText.setText(offer.getPrice().getAmount() + " " + offer.getPrice().getCurrency());
+            mHolder.priceText.setText(String.format ("%.2f", offer.getPrice().getAmount()) + " " + offer.getPrice().getCurrency());
 
             Glide.with(mHolder.imageView.getContext()).load(offer.getThumbnailUrl()).into(mHolder.imageView);
 

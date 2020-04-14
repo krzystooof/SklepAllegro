@@ -7,11 +7,13 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -35,7 +37,8 @@ import pl.krzystooof.sklepallegro.data.Offer;
 import pl.krzystooof.sklepallegro.data.Offers;
 import pl.krzystooof.sklepallegro.data.mSharedPref;
 
-//TODO second screen, tests, doc
+//NOT TESTED ON SDK<24
+//TODO tests, doc
 public class MainActivity extends AppCompatActivity {
 
     MainActivityRecycler recycler;
@@ -46,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(LogTag, "onCreate: called");
+        Log.i(LogTag, "onCreate: called");
         setContentView(R.layout.activity_main);
         offers = new ArrayList<>();
 
@@ -207,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(LogTag, "GetData: created");
         }
 
+
         @Override
         protected String doInBackground(String... strings) {
             try {
@@ -234,10 +238,10 @@ public class MainActivity extends AppCompatActivity {
                 for (Offer offer : offersObject.getOffers()) {
                     offers.add(offer);
                 }
-                Log.i(LogTag, "GetData: copied offers to recycler's array");
+                Log.e(LogTag, "GetData: copied offers to recycler's array");
             } catch (IOException exception) {
                 recycler.showSnackbar("Brak połączenia", true);
-                Log.e(LogTag, exception.toString());
+                Log.i(LogTag, "GetData: No connection");
 
             }
             return null;
@@ -266,7 +270,10 @@ public class MainActivity extends AppCompatActivity {
             return gson.fromJson(jsonString, Offers.class);
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.N)
         private Offers filter(Offers offersObject, int minPrice, final int maxPrice, boolean sort) {
+            //requires api >=24, current min 15
+
             //remove
             offersObject.getOffers().removeIf(p -> (p.getPrice().getAmount() < minPrice) || p.getPrice().getAmount() > maxPrice);
 

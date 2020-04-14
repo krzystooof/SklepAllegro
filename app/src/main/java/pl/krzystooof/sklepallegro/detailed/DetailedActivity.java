@@ -27,6 +27,7 @@ public class DetailedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed);
 
+        Log.i(LogTag, "onCreate: called");
         //get passed offer
         Intent intent = getIntent();
         Offer offer = new mSharedPref().offerFromJson(intent.getStringExtra(String.valueOf(R.string.intent_offer)));
@@ -34,6 +35,8 @@ public class DetailedActivity extends AppCompatActivity {
         setTitle(offer.getName());
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        DetailedActivityRecycler recycler = new DetailedActivityRecycler(offer);
     }
 
     class DetailedActivityRecycler {
@@ -53,10 +56,6 @@ public class DetailedActivity extends AppCompatActivity {
             adapter = new DetailedActivityRecyclerAdapter(offer);
             recyclerView.setAdapter(adapter);
             Log.i(LogTag, "recycler: created, items = " + adapter.getItemCount());
-        }
-
-        protected DetailedActivityRecyclerAdapter getAdapter() {
-            return adapter;
         }
     }
 }
