@@ -1,5 +1,7 @@
 package pl.krzystooof.sklepallegro.main;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -24,18 +26,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 import pl.krzystooof.sklepallegro.R;
 import pl.krzystooof.sklepallegro.data.Offer;
 import pl.krzystooof.sklepallegro.data.Offers;
 
-//TODO shared preferences, second screen
+//TODO second screen
 public class MainActivity extends AppCompatActivity {
 
     MainActivityRecycler recycler;
     String LogTag = "MainActivity";
+    ArrayList<Offer> offers;
 
 
     @Override
@@ -43,16 +47,29 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.e(LogTag, "onCreate: called");
         setContentView(R.layout.activity_main);
-        ArrayList<Offer> offers = new ArrayList<>();
-
-        //get Offers object
-        new GetData(offers).execute();
+        offers = new ArrayList<>();
 
         recycler = new MainActivityRecycler(offers);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        //save offers to shared pref
+        new mSharedPref().save(offers);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        //get offers and pass to recycler
+        new GetData(offers).execute();
+    }
+
+
     class MainActivityRecycler {
-        private String LogTag = "MainActivityRecycler";
         private RecyclerView recyclerView;
         private MainActivityRecyclerAdapter adapter;
         private LinearLayoutManager linearLayoutManager;
@@ -71,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setAdapter(adapter);
             itemTouchHelper = new ItemTouchHelper(new TouchHelper(adapter));
             itemTouchHelper.attachToRecyclerView(recyclerView);
-            Log.i(LogTag, "created, items = " + adapter.getItemCount());
+            Log.i(LogTag, "recycler: created, items = " + adapter.getItemCount());
         }
 
         protected MainActivityRecyclerAdapter getAdapter() {
@@ -83,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
             if (durationLong) snackbar = Snackbar.make(recyclerView, text, Snackbar.LENGTH_LONG);
             else snackbar = Snackbar.make(recyclerView, text, Snackbar.LENGTH_SHORT);
             snackbar.show();
-            Log.i(LogTag, "Snackbar " + text + " shown");
+            Log.i(LogTag, "recycler: Snackbar " + text + " shown");
         }
 
         class TouchHelper extends ItemTouchHelper.SimpleCallback {
@@ -108,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                if(viewHolder.getItemViewType()==0) {
+                if (viewHolder.getItemViewType() == 0) {
                     //set element back to its original position
                     adapter.notifyItemChanged(position);
                     //left
@@ -121,8 +138,7 @@ public class MainActivity extends AppCompatActivity {
                         showSnackbar("To może być inna akcja", false);
                         Log.i(LogTag, "mRecyclerTouchHelper: item no " + position + " swiped right");
                     }
-                }
-                else showSnackbar("Ten element się nie przesuwa", false);
+                } else showSnackbar("Ten element się  nie przesuwa", false);
             }
 
             public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
@@ -182,10 +198,21 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             try {
-                Offers offersObject = getOffers(jsonUrl);
-                Log.i(LogTag, "GetData: offers downloaded, size = " + offersObject.getOffers().size());
-                offersObject = filter(offersObject,50,1000,true);
+                Offers offersObject = new Offers();
+
+                //get offers from SharedPreferences
+                offersObject.setOffers(new mSharedPref().read());
+                Log.i(LogTag, "GetData: offers retrieved from SharedPref, size = " + offersObject.getOffers().size());
+
+                //if no offers download from url
+                if (offersObject.getOffers().size() == 0) {
+                    offersObject = getOffers(jsonUrl);
+                    Log.i(LogTag, "GetData: offers downloaded, size = " + offersObject.getOffers().size());
+                }
+                //filter
+                offersObject = filter(offersObject, 50, 1000, true);
                 Log.i(LogTag, "GetData: offers filtered, size = " + offersObject.getOffers().size());
+
                 //copy Offers object to recycler's ArrayList of Offer objects
                 offers.clear();
                 for (Offer offer : offersObject.getOffers()) {
@@ -220,14 +247,56 @@ public class MainActivity extends AppCompatActivity {
             Gson gson = new Gson();
             return gson.fromJson(jsonString, Offers.class);
         }
-        private Offers filter(Offers offersObject, int minPrice, final int maxPrice, boolean sort){
-            offersObject.getOffers().removeIf(p -> (p.getPrice().getAmount() < minPrice)|| p.getPrice().getAmount()>maxPrice);
-            if(sort) offersObject.getOffers().sort((o1, o2) -> {
+
+        private Offers filter(Offers offersObject, int minPrice, final int maxPrice, boolean sort) {
+            //remove
+            offersObject.getOffers().removeIf(p -> (p.getPrice().getAmount() < minPrice) || p.getPrice().getAmount() > maxPrice);
+
+            //sort
+            if (sort) offersObject.getOffers().sort((o1, o2) -> {
                 double o1Price = o1.getPrice().getAmount();
                 double o2Price = o2.getPrice().getAmount();
-                return o1Price<o2Price ? -1 : o1Price == o2Price ? 0 : 1;
+                return o1Price < o2Price ? -1 : o1Price == o2Price ? 0 : 1;
             });
             return offersObject;
+        }
+    }
+
+    class mSharedPref {
+        SharedPreferences sharedPref;
+        SharedPreferences.Editor editor;
+        Set<String> offersSet;
+        Gson gson;
+        String setName;
+
+        mSharedPref() {
+            sharedPref = getApplication().getSharedPreferences(getString(R.string.shared_preferences), Context.MODE_PRIVATE);
+            editor = sharedPref.edit();
+            offersSet = new HashSet<>();
+            gson = new Gson();
+            setName = "offersSet";
+        }
+
+        public void save(ArrayList<Offer> offers) {
+            sharedPref.edit().putBoolean("paused", true).commit();
+            for (Offer offer : offers) {
+                offersSet.add(gson.toJson(offer));
+            }
+            editor.putStringSet(setName, offersSet).apply();
+        }
+
+        public ArrayList<Offer> read() {
+            ArrayList<Offer> offers = new ArrayList<>();
+            
+            //if paused - something is saved, so read
+            if (sharedPref.getBoolean("paused", false)) {
+                Set<String> emptySet = new HashSet<>();
+                offersSet = sharedPref.getStringSet(setName, emptySet);
+                for (String jsonString : offersSet) {
+                    offers.add(gson.fromJson(jsonString, Offer.class));
+                }
+            }
+            return offers;
         }
     }
 }

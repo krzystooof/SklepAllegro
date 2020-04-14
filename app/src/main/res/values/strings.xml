@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SklepAllegro</string>
+    <string name="shared_preferences">shared_preferences</string>
 </resources>

@@ -28,6 +28,8 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
         this.offers = offers;
     }
 
+    //3 types of views implemented: OfferList (default), MiddleMessage and EndMessage
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -77,8 +79,14 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
             //after showing middle message offer no = position -1
             if (position > getItemCount() / 2) position--;
             Offer offer = offers.get(position);
-            mHolder.titleText.setText(offer.getName());
+
+            //prevent part of title showing off screen
+            if (offer.getName().length() > 40)
+                mHolder.titleText.setText(offer.getName().substring(0, 37) + "...");
+            else mHolder.titleText.setText(offer.getName());
+
             mHolder.priceText.setText(offer.getPrice().getAmount() + " " + offer.getPrice().getCurrency());
+
             Glide.with(mHolder.imageView.getContext()).load(offer.getThumbnailUrl()).into(mHolder.imageView);
         }
     }
@@ -86,17 +94,21 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
     @Override
     public int getItemCount() {
         int offersSize = offers.size();
-        //no offers
+
+        //no offers - no views
         if (offersSize == 0) return 0;
-        //offers + additional (1 MiddleMessage)
+
+        //offers + additional (1 MiddleMessage, 1 EndMessage)
         return offersSize + 1 + 1;
     }
 
     @Override
     public int getItemViewType(int position) {
         int itemCount = getItemCount();
+
         //no offers
         if (itemCount == 0) return 0;
+
         else {
             if (position == itemCount / 2) return 1;
             else if (position == itemCount - 1) return 2;
