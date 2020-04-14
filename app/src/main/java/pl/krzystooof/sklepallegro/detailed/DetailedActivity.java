@@ -38,7 +38,7 @@ public class DetailedActivity extends AppCompatActivity {
 
     class DetailedActivityRecycler {
         private RecyclerView recyclerView;
-        private MainActivityRecyclerAdapter adapter;
+        private DetailedActivityRecyclerAdapter adapter;
         private LinearLayoutManager linearLayoutManager;
         private DividerItemDecoration itemDecorator;
 
@@ -55,7 +55,7 @@ public class DetailedActivity extends AppCompatActivity {
             Log.i(LogTag, "recycler: created, items = " + adapter.getItemCount());
         }
 
-        protected MainActivityRecyclerAdapter getAdapter() {
+        protected DetailedActivityRecyclerAdapter getAdapter() {
             return adapter;
         }
     }
