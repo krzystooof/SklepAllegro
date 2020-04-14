@@ -277,23 +277,31 @@ public class MainActivity extends AppCompatActivity {
             setName = "offersSet";
         }
 
+        public String offerToJson(Offer offer){
+            return gson.toJson(offer);
+        }
+
         public void save(ArrayList<Offer> offers) {
             sharedPref.edit().putBoolean("paused", true).commit();
             for (Offer offer : offers) {
-                offersSet.add(gson.toJson(offer));
+                offersSet.add(offerToJson(offer));
             }
             editor.putStringSet(setName, offersSet).apply();
         }
 
+        public Offer offerFromJson(String jsonString){
+            return gson.fromJson(jsonString, Offer.class)
+        }
+
         public ArrayList<Offer> read() {
             ArrayList<Offer> offers = new ArrayList<>();
-            
+
             //if paused - something is saved, so read
             if (sharedPref.getBoolean("paused", false)) {
                 Set<String> emptySet = new HashSet<>();
                 offersSet = sharedPref.getStringSet(setName, emptySet);
                 for (String jsonString : offersSet) {
-                    offers.add(gson.fromJson(jsonString, Offer.class));
+                    offers.add(offerFromJson(jsonString));
                 }
             }
             return offers;
