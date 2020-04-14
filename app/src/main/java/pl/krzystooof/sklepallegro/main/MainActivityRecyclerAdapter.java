@@ -1,5 +1,7 @@
 package pl.krzystooof.sklepallegro.main;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 
 import pl.krzystooof.sklepallegro.R;
 import pl.krzystooof.sklepallegro.data.Offer;
+import pl.krzystooof.sklepallegro.data.mSharedPref;
+import pl.krzystooof.sklepallegro.detailed.DetailedActivity;
 
 
 public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -48,7 +52,7 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
         int viewType = getItemViewType(position);
-        Log.i(LogTag, "BindViewHolder: position = " + position + ", viewType = " + viewType);
+        //Log.i(LogTag, "BindViewHolder: position = " + position + ", viewType = " + viewType);
         //MiddleMessage
         if (viewType == 1) {
             final mViewHolder1 mHolder = (mViewHolder1) holder;
@@ -88,6 +92,16 @@ public class MainActivityRecyclerAdapter extends RecyclerView.Adapter<RecyclerVi
             mHolder.priceText.setText(offer.getPrice().getAmount() + " " + offer.getPrice().getCurrency());
 
             Glide.with(mHolder.imageView.getContext()).load(offer.getThumbnailUrl()).into(mHolder.imageView);
+
+            mHolder.layout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Context context = v.getContext();
+                    Intent intent = new Intent(context, DetailedActivity.class);
+                    intent.putExtra(String.valueOf(R.string.intent_offer), new mSharedPref().offerToJson(offer));
+                    context.startActivity(intent);
+                }
+            });
         }
     }
 
