@@ -30,6 +30,6 @@ show image, title and price (amount and currency)
 
 - no connection info
 
-![noInternet.gif](media/noInternet.gif)
-![swipe.gif](media/swipe.gif)
-![switch.gif](media/switch.gif)
+![noInternet.gif](media/noInternet.gif=250x)
+![swipe.gif](media/swipe.gif=250x)
+![switch.gif](media/switch.gif=250x)
