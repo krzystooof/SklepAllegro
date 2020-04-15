@@ -15,7 +15,6 @@ public class mSharedPref {
     SharedPreferences.Editor editor;
     Set<String> offersSet;
     Gson gson;
-    String setName;
     String LogTag;
 
     public mSharedPref(SharedPreferences sharedPref) {
@@ -23,7 +22,6 @@ public class mSharedPref {
         editor = sharedPref.edit();
         offersSet = new HashSet<>();
         gson = new Gson();
-        setName = "offersSet";
         LogTag = "mSharedPref";
     }
 
@@ -38,7 +36,7 @@ public class mSharedPref {
         return gson.toJson(offer);
     }
 
-    public void save(ArrayList<Offer> offers) {
+    public void save(ArrayList<Offer> offers, String setName) {
         setPaused(true);
         for (Offer offer : offers) {
             offersSet.add(offerToJson(offer));
@@ -52,7 +50,7 @@ public class mSharedPref {
         return gson.fromJson(jsonString, Offer.class);
     }
 
-    public ArrayList<Offer> read() {
+    public ArrayList<Offer> read(String setName) {
         ArrayList<Offer> offers = new ArrayList<>();
 
         //if paused - something is saved, so read

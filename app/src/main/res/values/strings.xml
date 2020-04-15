@@ -2,5 +2,6 @@
     <string name="app_name">SklepAllegro</string>
     <string name="shared_preferences">shared_preferences</string>
     <string name="shared_preferences_visible">visible_item</string>
+    <string name="shared_preferences_set">offersSet</string>
     <string name="intent_offer">offer</string>
 </resources>

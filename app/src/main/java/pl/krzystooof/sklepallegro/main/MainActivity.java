@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         //save offers and visibleItem to SharedPref
-        sharedPref.save(offers);
+        sharedPref.save(offers,String.valueOf(R.string.shared_preferences_set));
         sharedPref.saveInt(getString(R.string.shared_preferences_visible),recycler.getLinearLayoutManager().findFirstVisibleItemPosition());
     }
 
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                 //get offers and visibleItem from SharedPreferences
                 paused = sharedPref.getPaused();
                 if(paused) {
-                    offersObject.setOffers(sharedPref.read());
+                    offersObject.setOffers(sharedPref.read(String.valueOf(R.string.shared_preferences_set)));
                     Log.i(LogTag, "GetData: offers retrieved from SharedPref, size = " + offersObject.getOffers().size());
 
                     visibleItem = sharedPref.readInt(getString(R.string.shared_preferences_visible));
@@ -234,7 +234,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(LogTag, "GetData: offers downloaded, size = " + offersObject.getOffers().size());
                 }
                 //filter
-                offersObject = filter(offersObject, 50, 1000, true);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    offersObject = filter(offersObject, 50, 1000, true);
+                }
                 Log.i(LogTag, "GetData: offers filtered, size = " + offersObject.getOffers().size());
 
                 //copy Offers object to recycler's ArrayList of Offer objects

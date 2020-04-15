@@ -1,5 +1,7 @@
 package pl.krzystooof.sklepallegro.data;
 
+import java.util.Comparator;
+
 public class Offer {
     private String id;
     private String name;
@@ -62,5 +64,7 @@ public class Offer {
     public void setDescription​(String description​) {
         this.description​ = description​;
     }
+
+
 }
 
