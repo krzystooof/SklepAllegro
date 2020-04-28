@@ -1,5 +1,5 @@
 # Sklep Allegro
-Small two screen app made as internship task for Allegro.pl
+Small two screen app made as internship interview task for Allegro.pl
 
 ## Main tasks:
 - download and parse JSON ([Gson](https://github.com/google/gson "Gson") used)
